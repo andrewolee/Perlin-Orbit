@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src='p5.js'></script>
+    </head>
+    <body>
+        <canvas id='canvas' width=1000 height=1000></canvas>
+        <script>
+            const X = 0;
+            const Y = 0;
+            const Z = 0;
+            const C = -0.835;
+            const C_I = -0.2321;
+            const MAX_ITER = 1000;
+
+            let canvas = document.getElementById('canvas');
+            let width = canvas.width;
+            let height = canvas.height;
+            let context = canvas.getContext('2d');
+            let image = context.getImageData(0, 0, width, height);
+            let data = image.data;
+
+            function setup () {
+                noiseSeed(0);
+
+                for (let i = 0; i < width; i++) {
+                    for (let j = 0; j < width; j++) {
+                        let min_dist = Infinity;
+                        let z_min = Infinity;
+                        let z_i_min = Infinity;
+                        let z = 4 * i / width - 2;
+                        let z_i = 4 * j / height - 2;
+
+                        for (let k = 0; k < MAX_ITER; k++) {
+                            z2 = z * z;
+                            z_i2 = z_i * z_i;
+                            z_i = 2 * z * z_i + C_I;
+                            z = z2 - z_i2 + C;
+                            let d = z2 + z_i2;
+                            if (d < min_dist) {
+                                min_dist = d;
+                                z_min = z;
+                                z_i_min = z_i
+                            }
+                            if (d > 4) {
+                                break;
+                            }
+                        }
+
+                        let index = 4 * (i * width + j);
+                        
+                        z_min *= 5;
+                        z_i_min *= 5;
+                        min_dist += 0.1;
+
+                        data[index] = 8 / (noise(z_min, z_i_min, 0) * min_dist);
+                        data[index + 1] = 8 / (noise(z_min, z_i_min, 0.2) * min_dist);
+                        data[index + 2] = 8 / (noise(z_min, z_i_min, 0.4) * min_dist);
+                        data[index + 3] = 255;
+                        /*
+                        data[index] = 255 - 100 / noise(z_min, z_i_min, 0);
+                        data[index + 1] = 255 - 100 / noise(z_min, z_i_min, 0);
+                        data[index + 2] = 255 - 100 / noise(z_min, z_i_min, 0);
+                        data[index + 3] = 255;*/
+                    }
+                }
+                context.putImageData(image, 0, 0);
+            }
+        </script>
+    </body>
+</html>
